@@ -8,6 +8,8 @@ I was searching other tools to do this job but I didn't found it, so after analy
 ## Prerequisites
 This package assumes using Python 2.x. The Python3 "got3" folder is maintained as experimental and is not officially supported.
 
+(In case of Python 3.x, run the Exporter_py3)
+
 Expected package dependencies are listed in the "requirements.txt" file for PIP, you need to run the following command to get dependencies:
 ```
 pip install -r requirements.txt
