@@ -46,6 +46,8 @@ pip install -r requirements.txt
 - **Exporter:** Export tweets to a csv file named "output_got.csv".
 
 ## Examples of python usage
+
+
 - Get tweets by username
 ``` python
 	tweetCriteria = got.manager.TweetCriteria().setUsername('barackobama').setMaxTweets(1)
@@ -77,6 +79,10 @@ pip install -r requirements.txt
 ```
 
 ## Examples of command-line usage
+
+
+## For python3 call the Exporter_py3.py
+
 - Get help use
 ```
     python Exporter.py -h
