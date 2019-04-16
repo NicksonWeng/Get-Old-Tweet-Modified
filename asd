@@ -7,8 +7,10 @@ library(rgdal)
 library(spdep)                               # Spatial Analysis; also opens libraries "maptools" and "sp"
 library(RColorBrewer)                        # see "http://colorbrewer2.org/"
 library(classInt)                            # functions of data classification
-library(car)
 library(maptools)
+
+# list <- c("sp", "care", "rgdal", "spdep", "RColorBrewer", "classInt", "maptools")
+# install.packages(list)
 ##### Import the given functions to plot
 plotColorQual <- function(var.name,shape,my.title="",
                           my.legend=deparse(substitute(var.name)),
@@ -82,7 +84,7 @@ plotBiPolar <- function(var.name,shape,
 
 ####
 
-directory <- "D:\\GIS Statitics\\Lab works\\Labwork 4\\TXCnty2018"
+directory <- "C:\\Users\\hxw170008\\Downloads\\TXCnty2018"
 setwd(directory)
 
 ### Read and transformation
@@ -112,6 +114,26 @@ toDROP <- which(data[,which(colnames(data)=="VotingPOP")] == min(data$VotingPOP)
 TX <- TX[-c(toDROP),]
 ## Identified the small counties and removed them
 
+#Try this part later
+
+# ## Why is Bolzano-Bozen an extreme observation? Shall we delete it?
+# ##
+# idx.max <- which.max(abs(fertResid))        # Get index of a record with "outlying" observation 
+# ## Map potential outlier
+# extremeObs <- rep(0, length(fertResid))
+# extremeObs[idx.max] <- 1
+# extremeObs <- factor(extremeObs, labels=c("inPop","extreme"))
+# table(extremeObs)
+# plot(neig.shp,axes=T,col=grey(0.9),border="white",                 # background: neighboring countries
+#      xlim=prov.bbox[1,],ylim=prov.bbox[2,])                     
+# plotColorQual(extremeObs, prov.shp, my.title="Potential Outlier",
+#               my.legend="Outliers", addToMap=T)        
+# box()  
+# 
+# ## Inspect and delete outlier
+# prov.shp@data[idx.max,]                     # List info of record centre is outlier
+# prov.shp <- prov.shp[-idx.max, ]            # Delete extreme observation from shapefile 
+# 
 
 
 # distribution (how to improve it)
@@ -126,8 +148,8 @@ lambda1 <- powerTransform(trump_rate~1, data=TX)$lambda
 lambda2 <- powerTransform(clinton_rate~1, data=TX)$lambda
 
 # Test if use log would be better!?
-data$bc.trump <- car::bcPower(data$trump_rate, lambda=lambda1)
-data$bc.clinton <- car::bcPower(data$clinton_rate, lambda=lambda2)
+TX$bc.trump <- car::bcPower(TX$trump_rate, lambda=lambda1)
+TX$bc.clinton <- car::bcPower(TX$clinton_rate, lambda=lambda2)
 
 
 ####Things to add use anova to test if log is sufficient
@@ -143,17 +165,25 @@ TX$ID<-as.factor(TX$ID)
 prov.bbox <- bbox(TX)                                        # province bounding box for map region
 plot(NEIGHBORS,axes=T,col=grey(0.9),border="white",                 # background: neighboring countries
      xlim=prov.bbox[1,],ylim=prov.bbox[2,]) 
-plotColorQual(TX$REGION,TX,my.title="Texas Counties", my.legend = "TX COUNTIES"
-              , addToMap=T) 
+# plotColorQual(TX$REGION,TX,my.title="Texas Counties", my.legend = "TX COUNTIES"
+#               , addToMap=T) 
 
 plotColorRamp(TX$trump_rate,TX,n.breaks=8,    # second add map
               my.title="Spatial Pattern of Trump Vote Rate",
               my.legend="Trump Rate",addToMap=T)     # addToMap=T over-plots provinces over neighbors
 
-
+#Plot the link
 TX.centroid <- coordinates(TX) 
 TX.link <- poly2nb(TX, queen=F)
 
+plot(NEIGHBORS,axes=T,col=grey(0.9),border="white",                 # background: neighboring countries
+     xlim=prov.bbox[1,],ylim=prov.bbox[2,]) 
+plot(TX,col="palegreen3" ,border=grey(0.9), axes=T, add=T) # Second plot areas
+plot(TX.link,coords=TX.centroid, pch=19, cex=0.1,            # Third plot links focused at centroids
+     col="blue", add=T)
+title("Augmented Spatial Links among counties")                 # Forth add title
+box()  
+## Spatial Residual Analysis
 
 
 #Task 1 
@@ -165,23 +195,17 @@ data <- data[-c(which(data[,which(colnames(data)=="VotingPOP")] == min(data$Voti
 #Task 2
 # get potential regressors
 
-REGION f
-RELIGADHER f
-POP2010
-POPCHG
-POPDENSE
-URBRURAL f
 
 # Ploting is not really useful
-setwd("D:\\GIS Statitics\\Lab works\\Labwork 4\\plots")
-list <- colnames(data)
-attach(data)
-for(i in 1:length(list)){
-  jpeg(paste(list[i],".png"))
-  plot(data$bc.trump, data[,i], xlab = "trump", ylab = list[i])
-  dev.off() 
-}
-setwd(directory)
+# setwd("D:\\GIS Statitics\\Lab works\\Labwork 4\\plots")
+# list <- colnames(data)
+# attach(data)
+# for(i in 1:length(list)){
+#   jpeg(paste(list[i],".png"))
+#   plot(data$bc.trump, data[,i], xlab = "trump", ylab = list[i])
+#   dev.off() 
+# }
+# setwd(directory)
 
 # Run f test for all parameters vs. Trump
 # Functions Get f-statistics
@@ -193,8 +217,9 @@ lmp <- function (modelobject) {
   return(p)
 }
 
+list<-colnames(data)
 listofnotable <- c()
-for(i in 1:length(list)){
+for(i in 2:length(list)){
   mod<-lm(formula(paste("bc.trump","~",list[i])),data = data)
   x <- lmp(mod)
   if(is.na(x)){
@@ -206,17 +231,7 @@ for(i in 1:length(list)){
 }
 
 reduced_list<- 
-
-## to do (use weighted.residuals for heteroskedesticity)
-# resfun	
-# default: weighted.residuals; the function to be used to extract residuals from the lm object, may be residuals, weighted.residuals, rstandard, or rstudent
-# 
-# ###
-
-
-
-# Try mapping
-library(spdep)                               # Spatial Analysis; also opens libraries "maptools" and "sp"
-library(RColorBrewer)                        # see "http://colorbrewer2.org/"
-library(classInt)                            # functions of data classification
-library(maptools)
+  
+  ## to do (use weighted.residuals for heteroskedesticity)
+  # resfun	
+  # default: weighted.residuals; the function to be used to extract residuals from the lm object, may be residuals, weighted.residuals, rstandard, or rstudent
